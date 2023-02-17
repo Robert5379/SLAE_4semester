@@ -15,12 +15,12 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(
-        SolverTest
-        Tester.cc)
+        CSRTest
+        Tester_CSR.cc)
 target_link_libraries(
-        SolverTest
+        CSRTest
         GTest::gtest_main
 )
 
 include(GoogleTest)
-gtest_discover_tests(SolverTest)
+gtest_discover_tests(CSRTest)

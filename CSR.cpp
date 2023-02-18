@@ -1,21 +1,8 @@
 //
 // Created by robert on 15.02.23.
 //
-#include <vector>
-#include <iostream>
+#include "CSR.h"
 
-class CSR{
-public:
-    CSR(){};
-    CSR(unsigned int N, unsigned int m, double a[]);
-    double get_element(unsigned int i, unsigned int j);
-    std::vector<double>* operator*(std::vector<double>& v);
-    std::istream& operator >> (std::istream& in);
-private:
-    std::vector<double> data;
-    std::vector<unsigned int> line_indexes;
-    std::vector<unsigned int> column_indexes;
-};
 
 CSR::CSR(unsigned int n, unsigned int m, double a[]) {
     unsigned int k=0;
@@ -57,9 +44,9 @@ std::istream& CSR::operator>>(std::istream &in)
     return in;
 }
 
-std::vector<double>* CSR::operator*(std::vector<double> &v) {
+std::unique_ptr<std::vector<double>> CSR::operator*(std::vector<double> &v) {
     unsigned int z=0, i;
-    std::vector<double>* ans=new std::vector<double>;
+    std::unique_ptr<std::vector<double>> ans=std::make_unique<std::vector<double>>();
     double t;
     for(i=1;i< this->line_indexes.size();i++) {
         t=0;
@@ -70,6 +57,7 @@ std::vector<double>* CSR::operator*(std::vector<double> &v) {
     }
     return ans;
 }
+
 double CSR::get_element(unsigned int i, unsigned int j) {
     unsigned int z=0;
     for(z=this->line_indexes[i];z<this->line_indexes[i+1];z++){

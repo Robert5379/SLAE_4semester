@@ -60,6 +60,24 @@ std::vector<double> CSR::operator*(const std::vector<double> &v) const {
     return ans;
 }
 
+double operator*(const std::vector<double>& x, const std::vector<double>& v){
+    double ans=0;
+    unsigned int i;
+    for(i=0;i<x.size();i++){
+        ans+=x[i]*v[i];
+    }
+    return ans;
+
+}
+
+std::vector<double> operator+(const std::vector<double>& x, const std::vector<double>& v){
+    std::vector<double> ans=x;
+    for(unsigned int i=0;i<x.size();i++){
+        ans[i]+=v[i];
+    }
+    return ans;
+}
+
 double CSR::get_element(unsigned int i, unsigned int j) const {
     unsigned int z=0;
     for(z=this->line_indexes[i];z<this->line_indexes[i+1];z++){
@@ -199,8 +217,8 @@ std::vector<double> CSR::SIM_Chebyshev_acceleration(const std::vector<double> &x
         n*=2;
     }
     double *tau=new double[n];
-    tau[0]= cos(PI/(2*n));
-    double sin_b=sin(PI/(2*n)), cos_a=cos(PI/n), sin_a=sin(PI/n), a1=(lambda_max-lambda_min)/2, b1=(lambda_max+lambda_min)/2;
+    tau[0]= cos(M_PI/(2*n));
+    double sin_b=sin(M_PI/(2*n)), cos_a=cos(M_PI/n), sin_a=sin(M_PI/n), a1=(lambda_max-lambda_min)/2, b1=(lambda_max+lambda_min)/2;
     for(i=1;i<n;i++){
         tau[i]=tau[i-1]*cos_a-sin_b*sin_a;
         sin_b=tau[i]*sin_a+cos_a*sin_b;
@@ -412,11 +430,63 @@ std::vector<double> CSR::Steepest_descent(const std::vector<double> &x0, const s
                                           double accuracy) const {
     std::vector<double>x=x0;
     std::vector<double>r_i=(*this)*x-b;
-    double alpha;
+    std::vector<double>Ar=(*this)*r_i;
+    double alpha=r_i*r_i/(r_i*Ar);
     unsigned int k=0;
     while(modul(r_i)>accuracy){
-        x=x-tau*(r_i);
+        x=x-alpha*(r_i);
+        r_i=r_i-alpha*Ar;
+        Ar=(*this)*r_i;
+        alpha=r_i*r_i/(r_i*Ar);
+        k++;
+    }
+    return x;
+}
+
+std::vector<double>  CSR::Heavy_ball(const std::vector<double> &x0, const std::vector<double> &b,
+                                     double accuracy) const {
+    std::vector<double>x_prev=x0;
+    std::vector<double>x=x0;
+    std::vector<double>Ad(x0.size());
+    std::vector<double>r_i=(*this)*x-b;
+    std::vector<double>delta(x0.size());
+
+    double alpha=(r_i * r_i) / (r_i * ((*this) * r_i)), beta, rAr, rAd, rr;
+    x = x - alpha * r_i;
+    unsigned int k=0;
+    while(modul(r_i)>accuracy){
+        delta = x - x_prev;
+        x_prev=x;
+        Ad=(*this) * delta;
+        rAd = r_i * Ad;
+        rAr = r_i * ((*this) * r_i);
+        rr = r_i * r_i;
+        beta = (rr * rAd - r_i * delta * rAr) / (delta * Ad* rAr - rAd * rAd);
+        alpha = (rr + beta * rAd) / rAr;
+        x = x - alpha * r_i + beta * delta;
+        r_i = (*this) * x - b;
+        k++;
+    }
+    return x;
+}
+
+std::vector<double> CSR::Сonjugate_gradient(const std::vector<double> &x0, const std::vector<double> &b,
+                                            double accuracy) const {
+    std::vector<double>x=x0;
+    std::vector<double>r_i=(*this)*x-b;
+    std::vector<double>r_prev=r_i;
+    std::vector<double>d=r_i;
+
+    double alpha, dr=d*r_i;
+    alpha=dr/(d*((*this)*d));
+    unsigned int k=0;
+    while(modul(r_i)>accuracy){
+        x=x-alpha*d;
+        r_prev=r_i;
         r_i=(*this)*x-b;
+        d=r_i+(r_i*r_i/(d*r_prev))*d;
+        dr=d*r_i;
+        alpha=dr/(d*((*this)*d));
         k++;
     }
     return x;

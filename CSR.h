@@ -10,7 +10,6 @@
 #include <iostream>
 #include <cmath>
 
-const double PI = acos(-1.0);
 
 class mixed_num_vec{
 public:
@@ -20,6 +19,8 @@ public:
 };
 
 std::vector<double> operator*(double x, const std::vector<double>& v);
+std::vector<double> operator+(const std::vector<double>& x, const std::vector<double>& v);
+double operator*(const std::vector<double>& x, const std::vector<double>& v);
 std::vector<double> operator-(const std::vector<double>& v1, const std::vector<double>& v2);
 double max_abs(const std::vector<double>& x);
 double modul(const std::vector<double>& x);
@@ -41,6 +42,8 @@ public:
     std::vector<double> Symmetrical_Gauss_Seidel(const std::vector<double> & x0, const std::vector<double> & b, double ro, double accuracy) const;
     std::vector<double> SSOR(const std::vector<double> & x0, const std::vector<double> & b, double w, double ro, double accuracy) const;
     std::vector<double> Steepest_descent(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
+    std::vector<double> Heavy_ball(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
+    std::vector<double> Сonjugate_gradient(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
 private:
     std::vector<double> data;
     std::vector<unsigned int> column_indexes;

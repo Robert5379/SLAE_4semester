@@ -10,6 +10,8 @@
 #include <iostream>
 #include <cmath>
 
+const double PI = acos(-1.0);
+
 class mixed_num_vec{
 public:
     mixed_num_vec(std::vector<double> x, unsigned int k);
@@ -31,9 +33,14 @@ public:
     double get_element(unsigned int line_number, unsigned int column_number)const;
     std::vector<double>  operator*(const std::vector<double>& v)const;
     std::unique_ptr<double[]> multiply(const double x[], unsigned int n) const;
-    mixed_num_vec simple_iteration(const std::vector<double> & x0, const std::vector<double> & b, double tau,  double r)const;
+    mixed_num_vec Simple_iteration(const std::vector<double> & x0, const std::vector<double> & b, double tau,  double r)const;
     mixed_num_vec Jacobi(const std::vector<double> & x0, const std::vector<double> & b, double r) const;
     mixed_num_vec Gauss_Seidel(const std::vector<double> & x0, const std::vector<double> & b, double r) const;
+    std::vector<double> SIM_Chebyshev_acceleration(const std::vector<double> & x0, const std::vector<double> & b,double lambda_max, double lambda_min, double accuracy, double degree =5) const;
+    std::vector<double> SOR(const std::vector<double> & x0, const std::vector<double> & b, double w, double accuracy) const;
+    std::vector<double> Symmetrical_Gauss_Seidel(const std::vector<double> & x0, const std::vector<double> & b, double ro, double accuracy) const;
+    std::vector<double> SSOR(const std::vector<double> & x0, const std::vector<double> & b, double w, double ro, double accuracy) const;
+    std::vector<double> Steepest_descent(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
 private:
     std::vector<double> data;
     std::vector<unsigned int> column_indexes;

@@ -1,33 +1,31 @@
-#include "Triplex.cpp"
-#include <iostream>
-#include <vector>
+//#include "Triplex.cpp"
+//#include <iostream>
+//#include <vector>
+
+#include "Thridiagonal_matrix.h"
 
 //template <typename T=double>
-class tridiagonal_matrix{
-public:
-    tridiagonal_matrix(){};
-    void do_matrix(unsigned int N, double a[]){
-        n=N;
-        unsigned int i=0;
+
+void tridiagonal_matrix::do_matrix(unsigned int N, double *a) {
+        n = N;
+        unsigned int i = 0;
         triplex tr;
-        tr.b=a[0];
-        tr.c=a[1];
+        tr.b = a[0];
+        tr.c = a[1];
         data.push_back(tr);
-        for(i=2;i<3*n-6;i=i+3){
-            tr.a=a[i];
-            tr.b=a[i+1];
-            tr.c=a[i+2];
+        for (i = 2; i < 3 * n - 6; i = i + 3) {
+            tr.a = a[i];
+            tr.b = a[i + 1];
+            tr.c = a[i + 2];
             data.push_back(tr);
         }
-        tr.a=a[3*n-4];
-        tr.b=a[3*n-3];
+        tr.a = a[3 * n - 4];
+        tr.b = a[3 * n - 3];
         data.push_back(tr);
     }
-    unsigned int n;
-    std::vector <triplex> data;
-};
 
-template <typename T=double>
+
+
 std::istream& operator >> (std::istream& in, tridiagonal_matrix& p)
 {
     in >> p.n;

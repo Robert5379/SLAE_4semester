@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/Solver.cpp"
+#include "../src/Solver.h"
 
 TEST(SolverTest, SolverCorrectness1) {
     std::vector<double> X(3), f(3), test(3);
@@ -52,5 +52,9 @@ TEST(SolverTest, SolverCorrectness3) {
     for (int i = 0; i <3;++i) {
         EXPECT_TRUE(abs(X[i]-test[i])<0.01) << "Vectors X and test differ at index " << i;
     }
+}
 
+int main(int argc, char** argv){
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

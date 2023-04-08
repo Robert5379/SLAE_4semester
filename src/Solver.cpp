@@ -1,7 +1,9 @@
-#include "Thridiagonal_matrix.cpp"
-#include <vector>
+//#include "Thridiagonal_matrix.cpp"
+//#include <vector>
 
-template <typename T=double>
+#include "Solver.h"
+
+template <typename T>
 std::vector<T> solver(tridiagonal_matrix &A, std::vector<T> &f){
     unsigned int i, n=A.n;
     double p[n];

@@ -33,5 +33,4 @@ private:
 
 std::ostream& operator<<(std::ostream & os, const Complete_matrix& A);
 
-#include "Complete_matrix.cpp"
 #endif //SLAE_COMPLETE_MATRIX_H

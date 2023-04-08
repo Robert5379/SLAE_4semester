@@ -151,16 +151,22 @@ std::vector<double> operator*(double x, const std::vector<double>& v){
 mixed_num_vec::mixed_num_vec(std::vector<double> x, unsigned int k):X(x), K(k) {}
 
 
-std::pair<std::vector<double>, unsigned int> CSR::Simple_iteration(const std::vector<double> & x0, const std::vector<double> &b, double tau, double r) const {
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::Simple_iteration(const std::vector<double> & x0, const std::vector<double> &b, double tau, double r) const {
     std::vector<double>x=x0;
     std::vector<double>r_n=(*this)*x-b;
     unsigned int k=0;
-    while(modul(r_n)>r){
+    std::vector<unsigned int>k_vector;
+    std::vector<double> nev;
+    double tolerance=modul(r_n);
+    while(tolerance>r){
         x=x-tau*(r_n);
         r_n=(*this)*x-b;
         k++;
+        k_vector.push_back(k);
+        tolerance= modul(r_n);
+        nev.push_back(tolerance);
     }
-    return std::make_pair(x, k);
+    return std::make_pair(x, std::make_pair(nev, k_vector));
 }
 
 std::pair<std::vector<double>, unsigned int> CSR::Jacobi(const std::vector<double> &x0, const std::vector<double> &b, double r) const {
@@ -209,7 +215,7 @@ std::pair<std::vector<double>, unsigned int> CSR::Gauss_Seidel(const std::vector
     return std::make_pair(x, k);
 }
 
-std::pair<std::vector<double>, unsigned int> CSR::SIM_Chebyshev_acceleration(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::SIM_Chebyshev_acceleration(const std::vector<double> &x0, const std::vector<double> &b,
                                                     double lambda_max, double lambda_min,  double accuracy, double degree) const {
     unsigned int n=1, i, k=0;
     int j;
@@ -240,26 +246,34 @@ std::pair<std::vector<double>, unsigned int> CSR::SIM_Chebyshev_acceleration(con
             tau_num[2*j]=tau_num[j];
         }
     }
-
-    while(modul(accuracy_n)>accuracy){
+    std::vector<unsigned int>k_vector;
+    std::vector<double> nev;
+    double tolerance=modul(accuracy_n);
+    while(tolerance>accuracy){
         for(i=0;i<n;i++) {
             x = x - tau[tau_num[i]] * (accuracy_n);
             accuracy_n = (*this) * x - b;
+            tolerance= modul(accuracy_n);
             k++;
+            k_vector.push_back(k);
+            nev.push_back(tolerance);
         }
     }
     delete [] tau;
     delete [] tau_num;
-    return std::make_pair(x, k);
+    return std::make_pair(x, std::make_pair(nev, k_vector));
 }
 
-std::pair<std::vector<double>, unsigned int> CSR::SOR(const std::vector<double> &x0, const std::vector<double> &b, double w,
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::SOR(const std::vector<double> &x0, const std::vector<double> &b, double w,
                              double accuracy) const {
     std::vector<double>x=x0;
     double diag;
     double t;
     unsigned int i, z, k=0;
-    while(modul(b-(*this)*x)>accuracy){
+    std::vector<unsigned int>k_vector;
+    std::vector<double> nev;
+    double tolerance=modul(b-(*this)*x);
+    while(tolerance>accuracy){
         for(i=1;i< this->line_indexes.size();i++) {
             t = 0;
             for (z = this->line_indexes[i-1]; z < this->line_indexes[i]; z++) {
@@ -271,12 +285,15 @@ std::pair<std::vector<double>, unsigned int> CSR::SOR(const std::vector<double> 
             }
             x[i-1]=(w*b[i-1]-w*t-(w-1)*diag*x[i-1])/diag;
         }
+        tolerance=modul(b-(*this)*x);
         k++;
+        k_vector.push_back(k);
+        nev.push_back(tolerance);
     }
-    return std::make_pair(x, k);
+    return std::make_pair(x, std::make_pair(nev, k_vector));
 }
 
-std::pair<std::vector<double>, unsigned int> CSR::Symmetrical_Gauss_Seidel(const std::vector<double> &x0, const std::vector<double> &b, double ro,
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::Symmetrical_Gauss_Seidel(const std::vector<double> &x0, const std::vector<double> &b, double ro,
                                                   double accuracy) const {
     std::vector<double>x_prev=x0;
     std::vector<double>x=x0;
@@ -310,7 +327,11 @@ std::pair<std::vector<double>, unsigned int> CSR::Symmetrical_Gauss_Seidel(const
     }
     //конец обычной итерации симметричного ГЗ
 
-    while(modul(b-(*this)*x)>accuracy){
+    std::vector<unsigned int>k_vector;
+    std::vector<double> nev;
+    double tolerance=modul(b-(*this)*x);
+
+    while(tolerance>accuracy){
         vector_for_swap=x;
         for(i=1;i< this->line_indexes.size();i++) {
             x[i-1]=b[i-1];
@@ -341,12 +362,15 @@ std::pair<std::vector<double>, unsigned int> CSR::Symmetrical_Gauss_Seidel(const
         mu_prev=mu;
         mu=mu_next;
         mu_next=2*mu/ro-mu_prev;
+        tolerance=modul(b-(*this)*x);
         k++;
+        nev.push_back(tolerance);
+        k_vector.push_back(k);
     }
-    return std::make_pair(x, k);
+    return std::make_pair(x, std::make_pair(nev, k_vector));
 }
 
-std::pair<std::vector<double>, unsigned int> CSR::SSOR(const std::vector<double> &x0, const std::vector<double> &b, double w, double ro,
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::SSOR(const std::vector<double> &x0, const std::vector<double> &b, double w, double ro,
                               double accuracy) const {
     std::vector<double>x_prev=x0;
     std::vector<double>x=x0;
@@ -386,7 +410,11 @@ std::pair<std::vector<double>, unsigned int> CSR::SSOR(const std::vector<double>
     }
     //конец обычной итерации симметричного ГЗ
 
-    while(modul(b-(*this)*x)>accuracy){
+    std::vector<unsigned int>k_vector;
+    std::vector<double> nev;
+    double tolerance=modul(b-(*this)*x);
+
+    while(tolerance>accuracy){
         vector_for_swap=x;
         for(i=1;i< this->line_indexes.size();i++) {
             temp=x[i-1];
@@ -423,29 +451,38 @@ std::pair<std::vector<double>, unsigned int> CSR::SSOR(const std::vector<double>
         mu_prev=mu;
         mu=mu_next;
         mu_next=2*mu/ro-mu_prev;
+        tolerance=modul(b-(*this)*x);
         k++;
+        nev.push_back(tolerance);
+        k_vector.push_back(k);
     }
-    return std::make_pair(x, k);
+    return std::make_pair(x, std::make_pair(nev, k_vector));
 }
 
-std::pair<std::vector<double>, unsigned int> CSR::Steepest_descent(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::Steepest_descent(const std::vector<double> &x0, const std::vector<double> &b,
                                           double accuracy) const {
     std::vector<double>x=x0;
     std::vector<double>r_i=(*this)*x-b;
     std::vector<double>Ar=(*this)*r_i;
     double alpha=r_i*r_i/(r_i*Ar);
     unsigned int k=0;
-    while(modul(r_i)>accuracy){
+    std::vector<unsigned int>k_vector;
+    std::vector<double> nev;
+    double tolerance=modul(r_i);
+    while(tolerance>accuracy){
         x=x-alpha*(r_i);
         r_i=r_i-alpha*Ar;
         Ar=(*this)*r_i;
         alpha=r_i*r_i/(r_i*Ar);
+        tolerance=modul(r_i);
         k++;
+        k_vector.push_back(k);
+        nev.push_back(tolerance);
     }
-    return std::make_pair(x, k);
+    return std::make_pair(x, std::make_pair(nev, k_vector));
 }
 
-std::pair<std::vector<double>, unsigned int> CSR::Heavy_ball(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::Heavy_ball(const std::vector<double> &x0, const std::vector<double> &b,
                                      double accuracy) const {
     std::vector<double>x_prev=x0;
     std::vector<double>x=x0;
@@ -456,7 +493,10 @@ std::pair<std::vector<double>, unsigned int> CSR::Heavy_ball(const std::vector<d
     double alpha=(r_i * r_i) / (r_i * ((*this) * r_i)), beta, rAr, rAd, rr;
     x = x - alpha * r_i;
     unsigned int k=0;
-    while(modul(r_i)>accuracy){
+    std::vector<unsigned int>k_vector;
+    std::vector<double> nev;
+    double tolerance=modul(r_i);
+    while(tolerance>accuracy){
         delta = x - x_prev;
         x_prev=x;
         Ad=(*this) * delta;
@@ -467,12 +507,15 @@ std::pair<std::vector<double>, unsigned int> CSR::Heavy_ball(const std::vector<d
         alpha = (rr + beta * rAd) / rAr;
         x = x - alpha * r_i + beta * delta;
         r_i = (*this) * x - b;
+        tolerance=modul(r_i);
         k++;
+        k_vector.push_back(k);
+        nev.push_back(tolerance);
     }
-    return std::make_pair(x, k);
+    return std::make_pair(x, std::make_pair(nev, k_vector));
 }
 
-std::pair<std::vector<double>, unsigned int> CSR::Сonjugate_gradient(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::Сonjugate_gradient(const std::vector<double> &x0, const std::vector<double> &b,
                                             double accuracy) const {
     std::vector<double>x=x0;
     std::vector<double>r_i=(*this)*x-b;
@@ -482,14 +525,20 @@ std::pair<std::vector<double>, unsigned int> CSR::Сonjugate_gradient(const std:
     double alpha, dr=d*r_i;
     alpha=dr/(d*((*this)*d));
     unsigned int k=0;
-    while(modul(r_i)>accuracy){
+    std::vector<unsigned int>k_vector;
+    std::vector<double> nev;
+    double tolerance=modul(r_i);
+    while(tolerance>accuracy){
         x=x-alpha*d;
         r_prev=r_i;
         r_i=(*this)*x-b;
         d=r_i+(r_i*r_i/(d*r_prev))*d;
         dr=d*r_i;
         alpha=dr/(d*((*this)*d));
+        tolerance=modul(r_i);
         k++;
+        k_vector.push_back(k);
+        nev.push_back(tolerance);
     }
-    return std::make_pair(x, k);
+    return std::make_pair(x, std::make_pair(nev, k_vector));
 }

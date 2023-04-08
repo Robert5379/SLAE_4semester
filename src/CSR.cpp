@@ -151,7 +151,7 @@ std::vector<double> operator*(double x, const std::vector<double>& v){
 mixed_num_vec::mixed_num_vec(std::vector<double> x, unsigned int k):X(x), K(k) {}
 
 
-mixed_num_vec CSR::Simple_iteration(const std::vector<double> & x0, const std::vector<double> &b, double tau, double r) const {
+std::pair<std::vector<double>, unsigned int> CSR::Simple_iteration(const std::vector<double> & x0, const std::vector<double> &b, double tau, double r) const {
     std::vector<double>x=x0;
     std::vector<double>r_n=(*this)*x-b;
     unsigned int k=0;
@@ -160,10 +160,10 @@ mixed_num_vec CSR::Simple_iteration(const std::vector<double> & x0, const std::v
         r_n=(*this)*x-b;
         k++;
     }
-    return mixed_num_vec(x, k);
+    return std::make_pair(x, k);
 }
 
-mixed_num_vec CSR::Jacobi(const std::vector<double> &x0, const std::vector<double> &b, double r) const {
+std::pair<std::vector<double>, unsigned int> CSR::Jacobi(const std::vector<double> &x0, const std::vector<double> &b, double r) const {
     std::vector<double>x=x0;
     std::vector<double>x_next(x0.size());
     double diag;
@@ -184,10 +184,10 @@ mixed_num_vec CSR::Jacobi(const std::vector<double> &x0, const std::vector<doubl
         x=x_next;
         k++;
     }
-    return mixed_num_vec(x, k);
+    return std::make_pair(x, k);
 }
 
-mixed_num_vec CSR::Gauss_Seidel(const std::vector<double> &x0, const std::vector<double> &b, double r) const {
+std::pair<std::vector<double>, unsigned int> CSR::Gauss_Seidel(const std::vector<double> &x0, const std::vector<double> &b, double r) const {
     std::vector<double>x=x0;
     double diag;
     double t;
@@ -206,12 +206,12 @@ mixed_num_vec CSR::Gauss_Seidel(const std::vector<double> &x0, const std::vector
         }
         k++;
     }
-    return mixed_num_vec(x, k);
+    return std::make_pair(x, k);
 }
 
-std::vector<double> CSR::SIM_Chebyshev_acceleration(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, unsigned int> CSR::SIM_Chebyshev_acceleration(const std::vector<double> &x0, const std::vector<double> &b,
                                                     double lambda_max, double lambda_min,  double accuracy, double degree) const {
-    unsigned int n=1, i;
+    unsigned int n=1, i, k=0;
     int j;
     for(i=0;i<degree;i++){
         n*=2;
@@ -245,19 +245,20 @@ std::vector<double> CSR::SIM_Chebyshev_acceleration(const std::vector<double> &x
         for(i=0;i<n;i++) {
             x = x - tau[tau_num[i]] * (accuracy_n);
             accuracy_n = (*this) * x - b;
+            k++;
         }
     }
     delete [] tau;
     delete [] tau_num;
-    return x;
+    return std::make_pair(x, k);
 }
 
-std::vector<double> CSR::SOR(const std::vector<double> &x0, const std::vector<double> &b, double w,
+std::pair<std::vector<double>, unsigned int> CSR::SOR(const std::vector<double> &x0, const std::vector<double> &b, double w,
                              double accuracy) const {
     std::vector<double>x=x0;
     double diag;
     double t;
-    unsigned int i, z;
+    unsigned int i, z, k=0;
     while(modul(b-(*this)*x)>accuracy){
         for(i=1;i< this->line_indexes.size();i++) {
             t = 0;
@@ -270,11 +271,12 @@ std::vector<double> CSR::SOR(const std::vector<double> &x0, const std::vector<do
             }
             x[i-1]=(w*b[i-1]-w*t-(w-1)*diag*x[i-1])/diag;
         }
+        k++;
     }
-    return x;
+    return std::make_pair(x, k);
 }
 
-std::vector<double> CSR::Symmetrical_Gauss_Seidel(const std::vector<double> &x0, const std::vector<double> &b, double ro,
+std::pair<std::vector<double>, unsigned int> CSR::Symmetrical_Gauss_Seidel(const std::vector<double> &x0, const std::vector<double> &b, double ro,
                                                   double accuracy) const {
     std::vector<double>x_prev=x0;
     std::vector<double>x=x0;
@@ -341,10 +343,10 @@ std::vector<double> CSR::Symmetrical_Gauss_Seidel(const std::vector<double> &x0,
         mu_next=2*mu/ro-mu_prev;
         k++;
     }
-    return x;
+    return std::make_pair(x, k);
 }
 
-std::vector<double> CSR::SSOR(const std::vector<double> &x0, const std::vector<double> &b, double w, double ro,
+std::pair<std::vector<double>, unsigned int> CSR::SSOR(const std::vector<double> &x0, const std::vector<double> &b, double w, double ro,
                               double accuracy) const {
     std::vector<double>x_prev=x0;
     std::vector<double>x=x0;
@@ -423,10 +425,10 @@ std::vector<double> CSR::SSOR(const std::vector<double> &x0, const std::vector<d
         mu_next=2*mu/ro-mu_prev;
         k++;
     }
-    return x;
+    return std::make_pair(x, k);
 }
 
-std::vector<double> CSR::Steepest_descent(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, unsigned int> CSR::Steepest_descent(const std::vector<double> &x0, const std::vector<double> &b,
                                           double accuracy) const {
     std::vector<double>x=x0;
     std::vector<double>r_i=(*this)*x-b;
@@ -440,10 +442,10 @@ std::vector<double> CSR::Steepest_descent(const std::vector<double> &x0, const s
         alpha=r_i*r_i/(r_i*Ar);
         k++;
     }
-    return x;
+    return std::make_pair(x, k);
 }
 
-std::vector<double>  CSR::Heavy_ball(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, unsigned int> CSR::Heavy_ball(const std::vector<double> &x0, const std::vector<double> &b,
                                      double accuracy) const {
     std::vector<double>x_prev=x0;
     std::vector<double>x=x0;
@@ -467,10 +469,10 @@ std::vector<double>  CSR::Heavy_ball(const std::vector<double> &x0, const std::v
         r_i = (*this) * x - b;
         k++;
     }
-    return x;
+    return std::make_pair(x, k);
 }
 
-std::vector<double> CSR::Сonjugate_gradient(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, unsigned int> CSR::Сonjugate_gradient(const std::vector<double> &x0, const std::vector<double> &b,
                                             double accuracy) const {
     std::vector<double>x=x0;
     std::vector<double>r_i=(*this)*x-b;
@@ -489,5 +491,5 @@ std::vector<double> CSR::Сonjugate_gradient(const std::vector<double> &x0, cons
         alpha=dr/(d*((*this)*d));
         k++;
     }
-    return x;
+    return std::make_pair(x, k);
 }

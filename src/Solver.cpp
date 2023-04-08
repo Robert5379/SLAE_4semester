@@ -1,5 +1,3 @@
-//#include "Thridiagonal_matrix.cpp"
-//#include <vector>
 
 #include "Solver.h"
 

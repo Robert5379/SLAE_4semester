@@ -1,0 +1,25 @@
+SIM
+x_min
+1.5 1.5 1.5 1 
+f_min
+-4.25
+SIM_optimal
+x_min
+1.5 1.5 1.5 1 
+f_min
+-4.25
+Steepest_descent
+x_min
+1.5 1.5 1.5 1 
+f_min
+-4.25
+SIM_Chebyshev
+x_min
+1.5 1.5 1.5 1 
+f_min
+-4.25
+Conjugate_gradient
+x_min
+1.5 1.5 1.5 1 
+f_min
+-4.25

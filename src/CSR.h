@@ -34,16 +34,16 @@ public:
     double get_element(unsigned int line_number, unsigned int column_number)const;
     std::vector<double>  operator*(const std::vector<double>& v)const;
     std::unique_ptr<double[]> multiply(const double x[], unsigned int n) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Simple_iteration(const std::vector<double> & x0, const std::vector<double> & b, double tau,  double r)const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Simple_iteration(const std::vector<double> & x0, const std::vector<double> & b, double tau,  double r, unsigned int iterations=-1)const;
     std::pair<std::vector<double>, unsigned int> Jacobi(const std::vector<double> & x0, const std::vector<double> & b, double r) const;
     std::pair<std::vector<double>, unsigned int> Gauss_Seidel(const std::vector<double> & x0, const std::vector<double> & b, double r) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> SIM_Chebyshev_acceleration(const std::vector<double> & x0, const std::vector<double> & b,double lambda_max, double lambda_min, double accuracy, double degree =5) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>>SOR(const std::vector<double> & x0, const std::vector<double> & b, double w, double accuracy) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Symmetrical_Gauss_Seidel(const std::vector<double> & x0, const std::vector<double> & b, double ro, double accuracy) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> SSOR(const std::vector<double> & x0, const std::vector<double> & b, double w, double ro, double accuracy) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Steepest_descent(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Heavy_ball(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Conjugate_gradient(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> SIM_Chebyshev_acceleration(const std::vector<double> & x0, const std::vector<double> & b,double lambda_max, double lambda_min, double accuracy, double degree =5, unsigned int iterations=-1) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>>SOR(const std::vector<double> & x0, const std::vector<double> & b, double w, double accuracy, unsigned int iterations=-1) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Symmetrical_Gauss_Seidel(const std::vector<double> & x0, const std::vector<double> & b, double ro, double accuracy, unsigned int iterations=-1) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> SSOR(const std::vector<double> & x0, const std::vector<double> & b, double w, double ro, double accuracy, unsigned int iterations=-1) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Steepest_descent(const std::vector<double> & x0, const std::vector<double> & b, double accuracy, unsigned int iterations=-1) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Heavy_ball(const std::vector<double> & x0, const std::vector<double> & b, double accuracy, unsigned int iterations=-1) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Conjugate_gradient(const std::vector<double> & x0, const std::vector<double> & b, double accuracy, unsigned int iterations=-1) const;
 private:
     std::vector<double> data;
     std::vector<unsigned int> column_indexes;

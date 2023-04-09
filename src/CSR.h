@@ -43,7 +43,7 @@ public:
     std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> SSOR(const std::vector<double> & x0, const std::vector<double> & b, double w, double ro, double accuracy) const;
     std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Steepest_descent(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
     std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Heavy_ball(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
-    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Сonjugate_gradient(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Conjugate_gradient(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
 private:
     std::vector<double> data;
     std::vector<unsigned int> column_indexes;

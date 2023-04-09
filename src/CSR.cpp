@@ -515,7 +515,7 @@ std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigne
     return std::make_pair(x, std::make_pair(nev, k_vector));
 }
 
-std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::Сonjugate_gradient(const std::vector<double> &x0, const std::vector<double> &b,
+std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::Conjugate_gradient(const std::vector<double> &x0, const std::vector<double> &b,
                                             double accuracy) const {
     std::vector<double>x=x0;
     std::vector<double>r_i=(*this)*x-b;

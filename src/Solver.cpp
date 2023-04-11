@@ -22,3 +22,5 @@ std::vector<T> solver(tridiagonal_matrix &A, std::vector<T> &f){
     return x;
 }
 
+template std::vector<double> solver(tridiagonal_matrix &A, std::vector<double> &f);
+template std::vector<float> solver(tridiagonal_matrix &A, std::vector<float> &f);

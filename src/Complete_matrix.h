@@ -11,6 +11,7 @@
 class Complete_matrix {
 public:
     Complete_matrix();
+    Complete_matrix(unsigned int lines_number, unsigned int columns_number);
     Complete_matrix(const Complete_matrix& A);
     Complete_matrix(unsigned int lines_number, unsigned int columns_number, const double a[]);
     void do_identity(unsigned int n);

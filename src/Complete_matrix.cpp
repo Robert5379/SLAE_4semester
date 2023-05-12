@@ -4,6 +4,12 @@
 
 #include "Complete_matrix.h"
 
+Complete_matrix::Complete_matrix(unsigned int lines_number, unsigned int columns_number) {
+    this->n=lines_number;
+    this->m=columns_number;
+    this->data=std::make_unique<double[]>(lines_number*columns_number);
+}
+
 Complete_matrix::Complete_matrix(const Complete_matrix &A) {
     unsigned int i;
     this->n=A.get_column_size();

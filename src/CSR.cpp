@@ -4,6 +4,7 @@
 #include "CSR.h"
 
 
+
 CSR::CSR(unsigned int n, unsigned int m, const double a[]) {
     unsigned int k=0;
     unsigned int i, j;
@@ -22,6 +23,8 @@ CSR::CSR(unsigned int n, unsigned int m, const double a[]) {
     this->data.resize(k);
     this->column_indexes.resize(k);
 }
+
+CSR::CSR(const CSR &A): data(A.data), column_indexes(A.column_indexes), line_indexes(A.line_indexes) {}
 
 std::istream& operator>>(std::istream &in, CSR& A)
 {
@@ -68,6 +71,15 @@ double operator*(const std::vector<double>& x, const std::vector<double>& v){
     }
     return ans;
 
+}
+
+std::vector<double> operator/(const std::vector<double>& x, double a){
+    std::vector<double> ans=x;
+    unsigned int i;
+    for(i=0;i<x.size();i++){
+        ans[i]/=a;
+    }
+    return ans;
 }
 
 std::vector<double> operator+(const std::vector<double>& x, const std::vector<double>& v){
@@ -149,6 +161,39 @@ std::vector<double> operator*(double x, const std::vector<double>& v){
 }
 
 mixed_num_vec::mixed_num_vec(std::vector<double> x, unsigned int k):X(x), K(k) {}
+
+
+void CSR::transpose() {
+    unsigned int N= this->data.size(), W= this->line_indexes.size(), i, S=0, t, j1, j2, RIndex, IIndex, j;
+    std::vector<double> tVals(N);
+    std::vector<unsigned int> tCols(N);
+    std::vector<unsigned int> tRows(W);
+    for(i=0;i<N;i++){
+        tRows[this->column_indexes[i]+1]++;
+    }
+
+    for(i=1;i<W;i++){
+        t=tRows[i];
+        tRows[i]=S;
+        S+=t;
+    }
+
+    for(i=0;i<W-1;i++){
+        j1= this->line_indexes[i];
+        j2= this->line_indexes[i+1];
+        for(j=j1;j<j2;j++){
+            RIndex= this->column_indexes[j];
+            IIndex= tRows[RIndex+1];
+            tVals[IIndex]= this->data[j];
+            tCols[IIndex]=i;
+            tRows[RIndex+1]++;
+        }
+    }
+
+    this->data=tVals;
+    this->column_indexes=tCols;
+    this->line_indexes=tRows;
+}
 
 
 std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> CSR::Simple_iteration(const std::vector<double> & x0, const std::vector<double> &b, double tau, double r, unsigned int iterations) const {
@@ -541,4 +586,128 @@ std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigne
         nev.push_back(tolerance);
     }
     return std::make_pair(x, std::make_pair(nev, k_vector));
+}
+/*
+std::pair<std::vector<double>, std::pair<std::vector<double>,unsigned int>> CSR::Cholesky_CG(
+        const std::vector<double> &x0, const std::vector<double> &b, double accuracy, unsigned int iterations) const {
+    std::vector<double>x=x0;
+    std::vector<double>r_i=(*this)*x-b;
+    std::vector<double>r_prev=r_i;
+    std::vector<double>d=r_i;
+
+    double alpha, dr=d*r_i;
+    alpha=dr/(d*((*this)*d));
+    unsigned int k=0;
+    std::vector<double> nev;
+    double tolerance=modul(r_i);
+    while(tolerance>accuracy&&k<iterations){
+        x=x-alpha*d;
+        r_prev=r_i;
+        r_i=(*this)*x-b;
+        d=r_i+(r_i*r_i/(d*r_prev))*d;
+        dr=d*r_i;
+        alpha=dr/(d*((*this)*d));
+        tolerance=modul(r_i);
+        k++;
+        nev.push_back(tolerance);
+    }
+}
+*/
+std::pair<std::vector<double>, std::pair<std::vector<double>,unsigned int>> CSR::GMRES(const std::vector<double> &x0,
+                                                                                       const std::vector<double> &b,
+                                                                                       double accuracy) const {
+    std::vector<double> x = x0;
+    unsigned int n = this->line_indexes.size()-1;
+    std::vector<std::vector<double>> v(n+1, std::vector<double>(n));
+    Complete_matrix H(n+1, n);
+    std::vector<std::pair<double, double>> SinCos(n);
+    std::vector<double> r_0 = (*this) * x0 - b;
+    std::vector<double> nev{std::sqrt(r_0 * r_0)};
+    r_0.clear();
+    unsigned int iterations_number=0, i, j, k;
+    double t, t1, t2;
+    long int i1, j1;
+    std::vector<double> e(n+1);
+    std::vector<double> y(n);
+    while (nev[iterations_number] > accuracy) {
+        std::vector<double> r = (*this) * x - b;
+        e[0] = std::sqrt(r * r);
+        v[0] = r / e[0];
+        for (i = 0; i < n; i++) {
+            v[i+1]=(*this)*v[i];
+            for(j=0;j<i+1;j++){
+                H.write(v[j]*v[i+1], j, i);
+                v[i+1]=v[i+1]-H.get_element(j, i)*v[j];
+            }
+            H.write(std::sqrt(v[i+1]*v[i+1]), i+1, i);
+
+            for(j=0;j<i;j++){
+                t=H.get_element(j, i);
+                H.write(SinCos[j].second * H.get_element(j, i) + SinCos[j].first * H.get_element(j+1, i), j, i);
+                H.write(-SinCos[j].first * t + SinCos[j].second * H.get_element(j+1, i), j, i);
+            }
+            t1=H.get_element(i, i);
+            t2=H.get_element(i + 1, i);
+            double t = std::sqrt(t2 * t2 + t1 * t1);
+            SinCos[i].first = t2/ t;
+            SinCos[i].second = t1 / t;
+            H.write(SinCos[i].second * t1 + SinCos[i].first * t2, i, i);
+            H.write(0, i+1, i);
+
+            t=e[i];
+            e[i] = SinCos[i].second * e[i];
+            e[i + 1] = -SinCos[i].first * t;
+            nev.push_back(std::abs(e[i + 1]));
+            iterations_number++;
+        }
+
+        for ( i1 = n-1; i1 >= 0; i1--) {
+            y[i1] = e[i1];
+            for ( j1= n-1; j1 > i1; j1--) {
+                y[i1] -= H.get_element(i1, j1) * y[j1];
+            }
+            y[i1] /= H.get_element(i1, i1);
+            x = x - y[i1] * v[i1];
+        }
+    }
+
+    return std::make_pair(x, std::make_pair(nev, iterations_number));
+}
+
+std::pair<std::vector<double>, std::pair<std::vector<double>,unsigned int>> CSR::BiCG(const std::vector<double> &x0,
+                                                                                      const std::vector<double> &b,
+                                                                                      double accuracy) const {
+    CSR A_T(*this);
+    A_T.transpose();
+    std::vector<double> x = x0;
+    std::vector<double> r = (*this) * x - b;
+    std::vector<double> nev{std::sqrt(r * r)};
+    std::vector<double> r_wave, p, p_wave;
+    std::vector<double> Ap;
+    unsigned int i, iterations_number=0, j, k;
+    double q, t, rr, rr_prev;
+    while(nev[iterations_number] > accuracy){
+        r = (*this) * x - b;
+        r_wave=r;
+        p=r;
+        p_wave=r;
+        t=0;
+        rr_prev=1;
+        for(i=0;i<this->line_indexes.size();i++){
+            rr = r * r_wave;
+            if (rr == 0) break;
+            t = rr / rr_prev;
+            p = r + t * p;
+            p_wave = r_wave + t * p_wave;
+            rr_prev = rr;
+            Ap = (*this) * p;
+            q = rr / (r_wave * Ap);
+            x = x - q * p;
+            r = r - q * Ap;
+            r_wave = r_wave - q * (A_T * p_wave);
+            nev.push_back(std::sqrt(r * r));
+            iterations_number++;
+        }
+    }
+    return std::make_pair(x, std::make_pair(nev, iterations_number));
 }

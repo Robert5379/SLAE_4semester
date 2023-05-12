@@ -5,10 +5,9 @@
 #ifndef SLAE_CSR_H
 #define SLAE_CSR_H
 
-#include <memory>
 #include <vector>
-#include <iostream>
 #include <cmath>
+#include "Complete_matrix.h"
 
 
 class mixed_num_vec{
@@ -21,6 +20,7 @@ public:
 std::vector<double> operator*(double x, const std::vector<double>& v);
 std::vector<double> operator+(const std::vector<double>& x, const std::vector<double>& v);
 double operator*(const std::vector<double>& x, const std::vector<double>& v);
+std::vector<double> operator/(const std::vector<double>& x, double a);
 std::vector<double> operator-(const std::vector<double>& v1, const std::vector<double>& v2);
 double max_abs(const std::vector<double>& x);
 double modul(const std::vector<double>& x);
@@ -30,9 +30,11 @@ class CSR {
     friend std::istream& operator >> (std::istream& in, CSR& A);
 public:
     CSR(){};
-    CSR(unsigned int N, unsigned int m, const double a[]);
+    CSR(unsigned int lines_number, unsigned int columns_number, const double a[]);
+    CSR(const CSR& A);
     double get_element(unsigned int line_number, unsigned int column_number)const;
     std::vector<double>  operator*(const std::vector<double>& v)const;
+    void transpose();
     std::unique_ptr<double[]> multiply(const double x[], unsigned int n) const;
     std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Simple_iteration(const std::vector<double> & x0, const std::vector<double> & b, double tau,  double r, unsigned int iterations=-1)const;
     std::pair<std::vector<double>, unsigned int> Jacobi(const std::vector<double> & x0, const std::vector<double> & b, double r) const;
@@ -44,6 +46,9 @@ public:
     std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Steepest_descent(const std::vector<double> & x0, const std::vector<double> & b, double accuracy, unsigned int iterations=-1) const;
     std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Heavy_ball(const std::vector<double> & x0, const std::vector<double> & b, double accuracy, unsigned int iterations=-1) const;
     std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigned int>>> Conjugate_gradient(const std::vector<double> & x0, const std::vector<double> & b, double accuracy, unsigned int iterations=-1) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,unsigned int>> Cholesky_CG(const std::vector<double> & x0, const std::vector<double> & b, double accuracy, unsigned int iterations=-1) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,unsigned int>> GMRES(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
+    std::pair<std::vector<double>, std::pair<std::vector<double>,unsigned int>> BiCG(const std::vector<double> & x0, const std::vector<double> & b, double accuracy) const;
 private:
     std::vector<double> data;
     std::vector<unsigned int> column_indexes;

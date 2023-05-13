@@ -587,32 +587,62 @@ std::pair<std::vector<double>, std::pair<std::vector<double>,std::vector<unsigne
     }
     return std::make_pair(x, std::make_pair(nev, k_vector));
 }
-/*
+
 std::pair<std::vector<double>, std::pair<std::vector<double>,unsigned int>> CSR::Cholesky_CG(
         const std::vector<double> &x0, const std::vector<double> &b, double accuracy, unsigned int iterations) const {
     std::vector<double>x=x0;
     std::vector<double>r_i=(*this)*x-b;
-    std::vector<double>r_prev=r_i;
     std::vector<double>d=r_i;
+    std::vector<double>w(r_i.size());
 
-    double alpha, dr=d*r_i;
-    alpha=dr/(d*((*this)*d));
-    unsigned int k=0;
-    std::vector<double> nev;
-    double tolerance=modul(r_i);
-    while(tolerance>accuracy&&k<iterations){
-        x=x-alpha*d;
-        r_prev=r_i;
-        r_i=(*this)*x-b;
-        d=r_i+(r_i*r_i/(d*r_prev))*d;
-        dr=d*r_i;
-        alpha=dr/(d*((*this)*d));
-        tolerance=modul(r_i);
-        k++;
-        nev.push_back(tolerance);
+    double alpha, rw, sum;
+    unsigned int k=0, n= this->line_indexes.size()-1, i, j;
+    std::vector<double> nev={std::sqrt(r_i*r_i)};
+    double* l=new double[n*n];
+    for(i=0;i<n*n;i++){
+        l[i]=0;
     }
+    for(i=0;i<n;i++){
+        for(j=0;j<=i;j++){
+            sum=0;
+            for(k=0;k<j;k++){
+                sum+=l[i*n+k]*l[j*n+k];
+            }
+            if(i==j){
+                l[i*n+j]=std::sqrt(this->get_element(i, i)-sum);
+            } else{
+                l[i*n+j]=this->get_element(i, j-sum)/l[j*n+j];
+            }
+        }
+    }
+    k=0;
+    for(i=0;i<n;i++){
+        w[i]=r_i[i];
+        for(j=0;j<i;j++){
+            w[i]-=w[j]*l[i*n+j];
+        }
+        w[i]/=l[i*n+i];
+    }
+    d=w;
+    while(nev[k]>accuracy&&k<iterations){
+        rw=r_i*w;
+        alpha=rw/(d*((*this)*d));
+        x=x-alpha*d;
+        r_i=(*this)*x-b;
+        for(i=0;i<n;i++){
+            w[i]=r_i[i];
+            for(j=0;j<i;j++){
+                w[i]-=w[j]*l[i*n+j];
+            }
+            w[i]/=l[i*n+i];
+        }
+        d=(r_i*w/(rw))*d+w;
+        k++;
+        nev.push_back(std::sqrt(r_i*r_i));
+    }
+    return std::make_pair(x, std::make_pair(nev, k));
 }
-*/
+
 std::pair<std::vector<double>, std::pair<std::vector<double>,unsigned int>> CSR::GMRES(const std::vector<double> &x0,
                                                                                        const std::vector<double> &b,
                                                                                        double accuracy) const {
